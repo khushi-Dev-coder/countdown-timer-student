@@ -1,41 +1,34 @@
 # Countdown Timer Application
 
-A modern, accessible countdown timer web application with pause/resume functionality and persistent storage.
+A modern, accessible countdown timer application with pause/resume functionality and persistent storage.
 
 ## Features
 
-- **Timer Input**: Set countdown duration in seconds (1-3600)
-- **Timer Display**: Shows remaining time in MM:SS format
-- **Timer Controls**: 
-  - Start: Begin countdown
-  - Pause: Pause/resume ongoing countdown
-  - Reset: Stop timer and restore last set time
+- **Countdown Timer**: Set a timer from 1 to 3600 seconds
+- **Visual Display**: Shows remaining time in MM:SS format
+- **Controls**: Start, pause, and reset timer functionality
+- **Persistent Storage**: Remembers your last set time using localStorage
 - **Accessibility**: ARIA-live announcements for screen readers
-- **Persistence**: Remembers last set timer value using localStorage
-- **Visual Feedback**: 
-  - Color-coded timer states
-  - Smooth animations
-  - Responsive design
+- **Responsive Design**: Works on all device sizes
 
 ## Usage
 
-1. Enter desired countdown duration in seconds
-2. Click "Start Timer" to begin countdown
-3. Use "Pause" to pause/resume the timer
-4. Click "Reset" to stop and restore the initial time
-5. Timer automatically saves your last used duration
+1. Enter the desired number of seconds in the input field
+2. Click "Start Timer" to begin the countdown
+3. Use "Pause" to temporarily stop the timer
+4. Click "Resume" to continue from where you paused
+5. Use "Reset" to stop the timer and restore the last set time
 
 ## Technical Details
 
-- Pure JavaScript (no frameworks)
-- localStorage for data persistence
+- Pure HTML, CSS, and JavaScript (no frameworks)
+- localStorage integration for persistence
 - ARIA-live regions for accessibility
-- Responsive CSS with gradient backgrounds
-- MM:SS time format display
+- Responsive design with mobile-first approach
 
 ## Browser Support
 
-Works in all modern browsers that support:
+Works on all modern browsers that support:
 - ES6 JavaScript
 - localStorage API
 - CSS Grid and Flexbox

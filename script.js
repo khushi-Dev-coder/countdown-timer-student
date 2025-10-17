@@ -13,8 +13,8 @@
     // Timer state
     let countdownInterval = null;
     let remainingSeconds = 0;
-    let initialSeconds = 0;
     let isPaused = false;
+    let initialSeconds = 0;
 
     /**
      * Format seconds to MM:SS format
@@ -28,60 +28,51 @@
     }
 
     /**
-     * Update timer display and status
+     * Update the timer display
      * @param {number} seconds - Seconds to display
      */
     function updateDisplay(seconds) {
-        if (seconds <= 0) {
-            timerOutput.textContent = '00:00';
-            timerStatus.textContent = 'Timer finished!';
-            timerOutput.classList.add('done');
+        timerOutput.textContent = formatTimeMMSS(seconds);
+    }
+
+    /**
+     * Update timer status for accessibility
+     * @param {string} message - Status message
+     */
+    function updateStatus(message) {
+        timerStatus.textContent = message;
+    }
+
+    /**
+     * Save the last timer value to localStorage
+     * @param {number} seconds - Seconds to save
+     */
+    function saveToLocalStorage(seconds) {
+        localStorage.setItem('last-timer', seconds.toString());
+    }
+
+    /**
+     * Load the last timer value from localStorage
+     * @returns {number} Last saved timer value or 10 as default
+     */
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('last-timer');
+        return saved ? parseInt(saved, 10) : 10;
+    }
+
+    /**
+     * Enable/disable buttons based on timer state
+     */
+    function updateButtonStates(isRunning, isPaused) {
+        startBtn.disabled = isRunning && !isPaused;
+        pauseBtn.disabled = !isRunning || (isRunning && isPaused);
+        resetBtn.disabled = !isRunning && remainingSeconds === 0;
+        
+        // Update pause button text
+        if (isPaused) {
+            pauseBtn.textContent = 'Resume';
         } else {
-            timerOutput.textContent = formatTimeMMSS(seconds);
-            timerStatus.textContent = `${seconds} seconds remaining`;
-            timerOutput.classList.remove('done');
-        }
-    }
-
-    /**
-     * Stop the countdown timer
-     */
-    function stopTimer() {
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-        }
-        isPaused = false;
-        updateButtonStates('stopped');
-    }
-
-    /**
-     * Update button states based on timer state
-     * @param {string} state - 'running', 'paused', or 'stopped'
-     */
-    function updateButtonStates(state) {
-        switch(state) {
-            case 'running':
-                startBtn.disabled = true;
-                pauseBtn.disabled = false;
-                resetBtn.disabled = false;
-                pauseBtn.textContent = 'Pause';
-                secondsInput.disabled = true;
-                break;
-            case 'paused':
-                startBtn.disabled = true;
-                pauseBtn.disabled = false;
-                resetBtn.disabled = false;
-                pauseBtn.textContent = 'Resume';
-                secondsInput.disabled = true;
-                break;
-            case 'stopped':
-                startBtn.disabled = false;
-                pauseBtn.disabled = true;
-                resetBtn.disabled = true;
-                pauseBtn.textContent = 'Pause';
-                secondsInput.disabled = false;
-                break;
+            pauseBtn.textContent = 'Pause';
         }
     }
 
@@ -89,32 +80,51 @@
      * Start the countdown timer
      */
     function startTimer() {
-        stopTimer();
-        
         const inputValue = parseInt(secondsInput.value, 10);
         
         if (isNaN(inputValue) || inputValue < 1 || inputValue > 3600) {
-            alert('Please enter a valid number between 1 and 3600 seconds');
+            alert('Please enter a value between 1 and 3600 seconds');
             return;
         }
+
+        // Save to localStorage
+        saveToLocalStorage(inputValue);
         
+        // Initialize timer
         initialSeconds = inputValue;
         remainingSeconds = inputValue;
+        isPaused = false;
         
-        // Save to localStorage
-        localStorage.setItem('last-timer', initialSeconds.toString());
-        
+        // Update display
         updateDisplay(remainingSeconds);
-        updateButtonStates('running');
-        timerStatus.textContent = 'Timer started';
+        updateStatus(`Timer started: ${formatTimeMMSS(remainingSeconds)}`);
         
+        // Clear any existing interval
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+        }
+        
+        // Update button states
+        updateButtonStates(true, false);
+        
+        // Start countdown
         countdownInterval = setInterval(() => {
-            remainingSeconds--;
-            updateDisplay(remainingSeconds);
-            
-            if (remainingSeconds <= 0) {
-                stopTimer();
-                timerStatus.textContent = 'Timer finished!';
+            if (!isPaused) {
+                remainingSeconds--;
+                updateDisplay(remainingSeconds);
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    timerOutput.textContent = 'Done!';
+                    updateStatus('Timer completed!');
+                    updateButtonStates(false, false);
+                    remainingSeconds = 0;
+                } else if (remainingSeconds === 10) {
+                    updateStatus('10 seconds remaining');
+                } else if (remainingSeconds === 5) {
+                    updateStatus('5 seconds remaining');
+                }
             }
         }, 1000);
     }
@@ -123,71 +133,75 @@
      * Pause or resume the timer
      */
     function togglePause() {
-        if (!countdownInterval && isPaused) {
-            // Resume
-            isPaused = false;
-            updateButtonStates('running');
-            timerStatus.textContent = 'Timer resumed';
+        if (countdownInterval && remainingSeconds > 0) {
+            isPaused = !isPaused;
+            updateButtonStates(true, isPaused);
             
-            countdownInterval = setInterval(() => {
-                remainingSeconds--;
-                updateDisplay(remainingSeconds);
-                
-                if (remainingSeconds <= 0) {
-                    stopTimer();
-                    timerStatus.textContent = 'Timer finished!';
-                }
-            }, 1000);
-        } else if (countdownInterval) {
-            // Pause
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-            isPaused = true;
-            updateButtonStates('paused');
-            timerStatus.textContent = 'Timer paused';
+            if (isPaused) {
+                updateStatus('Timer paused');
+            } else {
+                updateStatus('Timer resumed');
+            }
         }
     }
 
     /**
-     * Reset the timer to initial value
+     * Reset the timer
      */
     function resetTimer() {
-        stopTimer();
-        remainingSeconds = initialSeconds;
-        updateDisplay(remainingSeconds);
-        timerStatus.textContent = 'Timer reset';
+        // Clear interval
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+        
+        // Reset state
+        isPaused = false;
+        remainingSeconds = 0;
+        
+        // Restore last saved value
+        const lastValue = loadFromLocalStorage();
+        secondsInput.value = lastValue;
+        updateDisplay(lastValue);
+        
+        // Update UI
+        updateStatus('Timer reset');
+        updateButtonStates(false, false);
     }
 
     /**
-     * Load saved timer value from localStorage
+     * Initialize the application
      */
-    function loadSavedTimer() {
-        const savedTime = localStorage.getItem('last-timer');
-        if (savedTime) {
-            const seconds = parseInt(savedTime, 10);
-            if (!isNaN(seconds) && seconds >= 1 && seconds <= 3600) {
-                secondsInput.value = seconds;
-                initialSeconds = seconds;
-                updateDisplay(seconds);
+    function init() {
+        // Load last saved value
+        const lastValue = loadFromLocalStorage();
+        secondsInput.value = lastValue;
+        updateDisplay(lastValue);
+        
+        // Set up event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', togglePause);
+        resetBtn.addEventListener('click', resetTimer);
+        
+        // Handle Enter key on input
+        secondsInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startTimer();
             }
-        } else {
-            // Set default display
-            updateDisplay(parseInt(secondsInput.value, 10));
-        }
+        });
+        
+        // Update display when input changes
+        secondsInput.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value, 10);
+            if (!isNaN(value) && value > 0 && value <= 3600) {
+                updateDisplay(value);
+            }
+        });
+        
+        // Initialize button states
+        updateButtonStates(false, false);
     }
 
-    // Event listeners
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', togglePause);
-    resetBtn.addEventListener('click', resetTimer);
-    
-    secondsInput.addEventListener('input', function() {
-        const value = parseInt(this.value, 10);
-        if (!isNaN(value) && value >= 1 && value <= 3600) {
-            updateDisplay(value);
-        }
-    });
-
-    // Initialize on load
-    loadSavedTimer();
+    // Start the application
+    init();
 })();

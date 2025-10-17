@@ -59,27 +59,29 @@ label {
     border: 2px solid #e0e0e0;
     border-radius: 10px;
     transition: border-color 0.3s ease;
+    background: #f9f9f9;
 }
 
 #seconds-input:focus {
     outline: none;
     border-color: #667eea;
+    background: white;
 }
 
-#seconds-input:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
+#seconds-input::-webkit-inner-spin-button,
+#seconds-input::-webkit-outer-spin-button {
+    height: 30px;
 }
 
 .button-group {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
     margin-bottom: 30px;
 }
 
 .btn {
-    flex: 1;
-    padding: 14px 20px;
+    padding: 12px 20px;
     font-size: 1rem;
     font-weight: 600;
     border: none;
@@ -107,7 +109,7 @@ label {
 
 .pause-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
 }
 
 .reset-button {
@@ -123,7 +125,7 @@ label {
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none !important;
+    transform: none;
 }
 
 .output-section {
@@ -132,47 +134,18 @@ label {
 
 .timer-display {
     font-size: 3rem;
-    font-weight: 700;
+    font-weight: bold;
     color: #333;
-    padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    transition: all 0.3s ease;
+    margin-bottom: 10px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
 }
 
-.timer-display.done {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Screen reader only class */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+.timer-status {
+    font-size: 0.9rem;
+    color: #666;
+    min-height: 20px;
+    font-style: italic;
 }
 
 /* Responsive Design */
@@ -190,10 +163,28 @@ label {
     }
     
     .button-group {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
     
     .btn {
-        width: 100%;
+        padding: 14px;
     }
+}
+
+/* Animation for timer completion */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.timer-display:has-text("Done!") {
+    animation: pulse 0.5s ease-in-out;
+    color: #4caf50;
 }
