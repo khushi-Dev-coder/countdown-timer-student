@@ -1,65 +1,53 @@
 # Countdown Timer Application
 
-## Overview
-A sleek, modern countdown timer web application that allows users to set a timer in seconds and watch it count down to zero. Built with vanilla JavaScript, HTML5, and CSS3.
+A modern, accessible countdown timer web application with pause/resume functionality and persistent storage.
 
 ## Features
-- ✨ Clean, intuitive user interface
-- ⏱️ Real-time countdown display
-- 🎯 Input validation (1-3600 seconds)
-- 🛑 Start/Stop functionality
-- 📱 Fully responsive design
-- 🌙 Dark mode support
-- 🎨 Smooth animations and transitions
-- ✅ Visual feedback (color changes for warning and completion)
-- 🔊 Optional completion sound
+
+- **Timer Input**: Set countdown duration in seconds (1-3600)
+- **Timer Display**: Shows remaining time in MM:SS format
+- **Timer Controls**: 
+  - Start: Begin countdown
+  - Pause: Pause/resume ongoing countdown
+  - Reset: Stop timer and restore last set time
+- **Accessibility**: ARIA-live announcements for screen readers
+- **Persistence**: Remembers last set timer value using localStorage
+- **Visual Feedback**: 
+  - Color-coded timer states
+  - Smooth animations
+  - Responsive design
 
 ## Usage
-1. Enter the desired number of seconds (1-3600) in the input field
-2. Click "Start Timer" or press Enter to begin countdown
-3. Timer will count down every second
-4. Click "Stop Timer" to pause the countdown
-5. When timer reaches 0, it displays "Done!" with visual feedback
+
+1. Enter desired countdown duration in seconds
+2. Click "Start Timer" to begin countdown
+3. Use "Pause" to pause/resume the timer
+4. Click "Reset" to stop and restore the initial time
+5. Timer automatically saves your last used duration
 
 ## Technical Details
 
-### Core Requirements Met
-- ✅ Input field with id `#seconds-input`
-- ✅ Display element with id `#timer-output`
-- ✅ Start button with id `#start-btn`
-- ✅ Uses `setInterval` for countdown functionality
-- ✅ Shows "Done!" when countdown completes
+- Pure JavaScript (no frameworks)
+- localStorage for data persistence
+- ARIA-live regions for accessibility
+- Responsive CSS with gradient backgrounds
+- MM:SS time format display
 
-### Code Structure
-- **index.html**: Main HTML structure
-- **script.js**: JavaScript logic with proper error handling
-- **style.css**: Modern, responsive styling
+## Browser Support
 
-### Best Practices
-- IIFE pattern for encapsulation
-- Proper event listener cleanup
-- Input validation and error handling
-- Accessible design with proper labels
-- Performance optimized with efficient DOM queries
-- Clean, commented code
+Works in all modern browsers that support:
+- ES6 JavaScript
+- localStorage API
+- CSS Grid and Flexbox
 
-## Browser Compatibility
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Mobile browsers
+## Round 2 Updates
+### New Requirements:
+Enhance the countdown timer: add pause (#pause-btn) and reset (#reset-btn) buttons; display the remaining time in MM:SS format inside #timer-output; use aria-live='polite' on #timer-status to announce updates; persist last set time in localStorage under 'last-timer' and restore on page load.
 
-## Deployment
-This application is ready for deployment on GitHub Pages or any static hosting service. Simply upload all files to your web server.
-
-## Local Development
-1. Clone or download the repository
-2. Open `index.html` in a web browser
-3. No build process or dependencies required
-
-## License
-MIT License - Feel free to use and modify as needed.
-
-## Author
-Created as a demonstration of modern web development practices.
+### New Checks:
+- document.querySelector('#timer-status').getAttribute('aria-live') === 'polite'
+- !!document.querySelector('#pause-btn')
+- !!document.querySelector('#reset-btn')
+- !!document.querySelector('script').textContent.includes('localStorage.setItem("last-timer"')
+- !!document.querySelector('script').textContent.includes('localStorage.getItem("last-timer"')
+- document.querySelector('#timer-output').textContent.match(/\d{2}:\d{2}/)

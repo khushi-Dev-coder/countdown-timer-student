@@ -54,55 +54,76 @@ label {
 
 #seconds-input {
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px;
     font-size: 1.1rem;
     border: 2px solid #e0e0e0;
     border-radius: 10px;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
+    transition: border-color 0.3s ease;
 }
 
 #seconds-input:focus {
     outline: none;
     border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 #seconds-input:disabled {
-    background: #e9ecef;
+    background-color: #f5f5f5;
     cursor: not-allowed;
-    opacity: 0.7;
 }
 
-.start-button {
-    width: 100%;
-    padding: 14px 24px;
-    font-size: 1.1rem;
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.btn {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 1rem;
     font-weight: 600;
-    color: white;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 25px;
+    letter-spacing: 0.5px;
+}
+
+.start-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
 .start-button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.start-button:active:not(:disabled) {
-    transform: translateY(0);
+.pause-button {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
 }
 
-.start-button:disabled {
-    opacity: 0.6;
+.pause-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+}
+
+.reset-button {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.reset-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+}
+
+.btn:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
+    transform: none !important;
 }
 
 .output-section {
@@ -111,33 +132,22 @@ label {
 
 .timer-display {
     font-size: 3rem;
-    font-weight: bold;
+    font-weight: 700;
     color: #333;
     padding: 20px;
-    border-radius: 10px;
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     transition: all 0.3s ease;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.timer-display.running {
-    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-    animation: pulse 1s infinite;
-}
-
-.timer-display.warning {
+.timer-display.done {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-    animation: pulse 0.5s infinite;
-}
-
-.timer-display.completed {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    color: white;
-    animation: bounce 0.5s ease;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 1s infinite;
 }
 
 @keyframes pulse {
@@ -145,23 +155,24 @@ label {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.02);
+        transform: scale(1.05);
     }
     100% {
         transform: scale(1);
     }
 }
 
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    25% {
-        transform: translateY(-10px);
-    }
-    75% {
-        transform: translateY(5px);
-    }
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Responsive Design */
@@ -177,35 +188,12 @@ label {
     .timer-display {
         font-size: 2.5rem;
     }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    body {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    
+    .button-group {
+        flex-direction: column;
     }
     
-    .timer-card {
-        background: #2d3748;
-    }
-    
-    label {
-        color: #e2e8f0;
-    }
-    
-    #seconds-input {
-        background: #1a202c;
-        color: #e2e8f0;
-        border-color: #4a5568;
-    }
-    
-    #seconds-input:focus {
-        background: #2d3748;
-        border-color: #667eea;
-    }
-    
-    .timer-display {
-        background: #1a202c;
-        color: #e2e8f0;
+    .btn {
+        width: 100%;
     }
 }

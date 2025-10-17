@@ -5,45 +5,41 @@
     // Cache DOM elements
     const secondsInput = document.querySelector('#seconds-input');
     const timerOutput = document.querySelector('#timer-output');
+    const timerStatus = document.querySelector('#timer-status');
     const startBtn = document.querySelector('#start-btn');
+    const pauseBtn = document.querySelector('#pause-btn');
+    const resetBtn = document.querySelector('#reset-btn');
 
     // Timer state
     let countdownInterval = null;
     let remainingSeconds = 0;
+    let initialSeconds = 0;
+    let isPaused = false;
 
     /**
-     * Format seconds to display string
+     * Format seconds to MM:SS format
      * @param {number} seconds - Number of seconds to format
-     * @returns {string} Formatted time string
+     * @returns {string} Formatted time string in MM:SS
      */
-    function formatTime(seconds) {
-        if (seconds <= 0) return 'Done!';
-        
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
+    function formatTimeMMSS(seconds) {
+        const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        
-        if (hours > 0) {
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        } else if (minutes > 0) {
-            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        } else {
-            return secs.toString();
-        }
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     /**
-     * Update the timer display
+     * Update timer display and status
+     * @param {number} seconds - Seconds to display
      */
-    function updateDisplay() {
-        timerOutput.textContent = formatTime(remainingSeconds);
-        
-        // Add visual feedback
-        if (remainingSeconds <= 0) {
-            timerOutput.classList.add('completed');
-            timerOutput.classList.remove('running');
-        } else if (remainingSeconds <= 5) {
-            timerOutput.classList.add('warning');
+    function updateDisplay(seconds) {
+        if (seconds <= 0) {
+            timerOutput.textContent = '00:00';
+            timerStatus.textContent = 'Timer finished!';
+            timerOutput.classList.add('done');
+        } else {
+            timerOutput.textContent = formatTimeMMSS(seconds);
+            timerStatus.textContent = `${seconds} seconds remaining`;
+            timerOutput.classList.remove('done');
         }
     }
 
@@ -55,110 +51,143 @@
             clearInterval(countdownInterval);
             countdownInterval = null;
         }
-        startBtn.textContent = 'Start Timer';
-        startBtn.disabled = false;
-        secondsInput.disabled = false;
+        isPaused = false;
+        updateButtonStates('stopped');
+    }
+
+    /**
+     * Update button states based on timer state
+     * @param {string} state - 'running', 'paused', or 'stopped'
+     */
+    function updateButtonStates(state) {
+        switch(state) {
+            case 'running':
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                resetBtn.disabled = false;
+                pauseBtn.textContent = 'Pause';
+                secondsInput.disabled = true;
+                break;
+            case 'paused':
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                resetBtn.disabled = false;
+                pauseBtn.textContent = 'Resume';
+                secondsInput.disabled = true;
+                break;
+            case 'stopped':
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                resetBtn.disabled = true;
+                pauseBtn.textContent = 'Pause';
+                secondsInput.disabled = false;
+                break;
+        }
     }
 
     /**
      * Start the countdown timer
      */
     function startTimer() {
-        // Validate input
+        stopTimer();
+        
         const inputValue = parseInt(secondsInput.value, 10);
         
-        if (isNaN(inputValue) || inputValue <= 0) {
-            alert('Please enter a valid number of seconds (greater than 0)');
+        if (isNaN(inputValue) || inputValue < 1 || inputValue > 3600) {
+            alert('Please enter a valid number between 1 and 3600 seconds');
             return;
         }
         
-        if (inputValue > 3600) {
-            alert('Maximum time limit is 3600 seconds (1 hour)');
-            return;
-        }
-        
-        // Initialize timer
+        initialSeconds = inputValue;
         remainingSeconds = inputValue;
         
-        // Reset classes
-        timerOutput.classList.remove('completed', 'warning');
-        timerOutput.classList.add('running');
+        // Save to localStorage
+        localStorage.setItem('last-timer', initialSeconds.toString());
         
-        // Update UI
-        startBtn.textContent = 'Stop Timer';
-        startBtn.disabled = false;
-        secondsInput.disabled = true;
+        updateDisplay(remainingSeconds);
+        updateButtonStates('running');
+        timerStatus.textContent = 'Timer started';
         
-        // Display initial time
-        updateDisplay();
-        
-        // Start countdown using setInterval
         countdownInterval = setInterval(() => {
             remainingSeconds--;
-            updateDisplay();
+            updateDisplay(remainingSeconds);
             
             if (remainingSeconds <= 0) {
                 stopTimer();
-                // Play completion sound if available
-                try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSl+zPPThjMGHm7A7+OZURE');
-                    audio.volume = 0.3;
-                    audio.play().catch(() => {});
-                } catch (e) {
-                    // Silent fail for audio
-                }
+                timerStatus.textContent = 'Timer finished!';
             }
         }, 1000);
     }
 
     /**
-     * Handle start/stop button click
+     * Pause or resume the timer
      */
-    function handleStartClick() {
-        if (countdownInterval) {
-            // Timer is running, stop it
-            stopTimer();
-            timerOutput.textContent = 'Stopped';
-            timerOutput.classList.remove('running', 'warning');
+    function togglePause() {
+        if (!countdownInterval && isPaused) {
+            // Resume
+            isPaused = false;
+            updateButtonStates('running');
+            timerStatus.textContent = 'Timer resumed';
+            
+            countdownInterval = setInterval(() => {
+                remainingSeconds--;
+                updateDisplay(remainingSeconds);
+                
+                if (remainingSeconds <= 0) {
+                    stopTimer();
+                    timerStatus.textContent = 'Timer finished!';
+                }
+            }, 1000);
+        } else if (countdownInterval) {
+            // Pause
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            isPaused = true;
+            updateButtonStates('paused');
+            timerStatus.textContent = 'Timer paused';
+        }
+    }
+
+    /**
+     * Reset the timer to initial value
+     */
+    function resetTimer() {
+        stopTimer();
+        remainingSeconds = initialSeconds;
+        updateDisplay(remainingSeconds);
+        timerStatus.textContent = 'Timer reset';
+    }
+
+    /**
+     * Load saved timer value from localStorage
+     */
+    function loadSavedTimer() {
+        const savedTime = localStorage.getItem('last-timer');
+        if (savedTime) {
+            const seconds = parseInt(savedTime, 10);
+            if (!isNaN(seconds) && seconds >= 1 && seconds <= 3600) {
+                secondsInput.value = seconds;
+                initialSeconds = seconds;
+                updateDisplay(seconds);
+            }
         } else {
-            // Timer is not running, start it
-            startTimer();
-        }
-    }
-
-    /**
-     * Handle Enter key press in input field
-     */
-    function handleInputKeyPress(event) {
-        if (event.key === 'Enter' && !countdownInterval) {
-            startTimer();
-        }
-    }
-
-    /**
-     * Validate input as user types
-     */
-    function handleInputChange() {
-        const value = parseInt(secondsInput.value, 10);
-        if (value < 1) {
-            secondsInput.value = 1;
-        } else if (value > 3600) {
-            secondsInput.value = 3600;
+            // Set default display
+            updateDisplay(parseInt(secondsInput.value, 10));
         }
     }
 
     // Event listeners
-    startBtn.addEventListener('click', handleStartClick);
-    secondsInput.addEventListener('keypress', handleInputKeyPress);
-    secondsInput.addEventListener('change', handleInputChange);
-
-    // Clean up on page unload
-    window.addEventListener('beforeunload', () => {
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', togglePause);
+    resetBtn.addEventListener('click', resetTimer);
+    
+    secondsInput.addEventListener('input', function() {
+        const value = parseInt(this.value, 10);
+        if (!isNaN(value) && value >= 1 && value <= 3600) {
+            updateDisplay(value);
         }
     });
 
-    // Initialize display
-    timerOutput.textContent = 'Ready';
+    // Initialize on load
+    loadSavedTimer();
 })();
